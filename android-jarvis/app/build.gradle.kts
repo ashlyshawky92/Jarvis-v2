@@ -14,9 +14,9 @@ val localProps = Properties().apply {
     }
 }
 
-val backendProxyUrl = localProps.getProperty("JARVIS_BACKEND_URL")
+val backendProxyUrl = (localProps.getProperty("JARVIS_BACKEND_URL")
     ?: System.getenv("JARVIS_BACKEND_URL")
-    ?: ""
+    ?: "").trim()
 
 android {
     namespace = "com.jarvis.assistant"
@@ -26,13 +26,25 @@ android {
         applicationId = "com.jarvis.assistant"
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0-phase1"
+        versionCode = 2
+        versionName = "1.1.0-phase1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "JARVIS_BACKEND_URL", "\"$backendProxyUrl\"")
         buildConfigField("String", "DEFAULT_GEMINI_MODEL", "\"gemini-4-hydrogen\"")
+    }
+
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+            if (!keystorePath.isNullOrBlank()) {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -43,6 +55,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+            if (!keystorePath.isNullOrBlank()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             applicationIdSuffix = ".debug"
@@ -63,6 +79,10 @@ android {
         compose = true
         buildConfig = true
     }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -81,4 +101,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

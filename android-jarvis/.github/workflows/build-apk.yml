@@ -1,12 +1,14 @@
-name: Build JARVIS Android APK
+name: Build JARVIS Debug APK & Run Unit Tests
 
 on:
   push:
     branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
-  build-debug-apk:
+  test-and-build-debug:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -23,14 +25,25 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
+      - name: Run JVM Unit Tests
+        run: gradle testDebugUnitTest --no-daemon --stacktrace
+
       - name: Build Debug APK
         env:
           JARVIS_BACKEND_URL: ${{ secrets.JARVIS_BACKEND_URL }}
         run: gradle assembleDebug --no-daemon --stacktrace
 
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JARVIS-Unit-Test-Reports
+          path: app/build/reports/tests/
+          retention-days: 14
+
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: JARVIS-Phase1-Debug-APK
+          name: JARVIS-Phase1.1-Debug-APK
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 30

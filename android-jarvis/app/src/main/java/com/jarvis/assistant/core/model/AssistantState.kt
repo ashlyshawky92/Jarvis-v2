@@ -1,12 +1,13 @@
 package com.jarvis.assistant.core.model
 
 enum class AssistantState(val arabicLabel: String, val englishCode: String) {
+    OFFLINE("غير متصل بالإنترنت", "OFFLINE"),
     STANDBY("في الانتظار", "STANDBY"),
+    INITIALIZING("جاري التجهيز...", "INITIALIZING"),
     LISTENING("بسمعك يا فندم...", "LISTENING"),
     THINKING("بفكر...", "THINKING"),
-    EXECUTING("بنفذ الأمر...", "EXECUTING"),
     SPEAKING("بتكلم...", "SPEAKING"),
-    OFFLINE("غير متصل بالإنترنت", "OFFLINE"),
+    AWAITING_CONFIRMATION("في انتظار تأكيدك يا فندم", "AWAITING_CONFIRMATION"),
     ERROR("حصلت مشكلة", "ERROR")
 }
 

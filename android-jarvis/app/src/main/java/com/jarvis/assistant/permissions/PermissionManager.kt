@@ -16,6 +16,12 @@ data class PermissionStatusSnapshot(
     val ignoringBatteryOptimizations: Boolean
 )
 
+data class PermissionRationale(
+    val permission: String,
+    val titleArabic: String,
+    val explanationArabic: String
+)
+
 class PermissionManager(private val context: Context) {
 
     fun snapshot(): PermissionStatusSnapshot {
@@ -41,6 +47,26 @@ class PermissionManager(private val context: Context) {
             notificationsGranted = notif,
             ignoringBatteryOptimizations = batteryExempt
         )
+    }
+
+    fun getPhase1Rationales(): List<PermissionRationale> {
+        val list = mutableListOf(
+            PermissionRationale(
+                permission = Manifest.permission.RECORD_AUDIO,
+                titleArabic = "صلاحية الميكروفون",
+                explanationArabic = "مطلوبة فقط عند الضغط على زر التحدث لسماع أوامرك الصوتية باللهجة المصرية."
+            )
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            list.add(
+                PermissionRationale(
+                    permission = Manifest.permission.POST_NOTIFICATIONS,
+                    titleArabic = "صلاحية الإشعارات",
+                    explanationArabic = "مطلوبة لإظهار تنبيهات المساعد والتذكيرات المستقبلية عند تفعيلها."
+                )
+            )
+        }
+        return list
     }
 
     fun phase1RequiredPermissions(): Array<String> {

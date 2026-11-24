@@ -18,6 +18,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.BatteryStd
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.Send
@@ -47,6 +49,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jarvis.assistant.core.model.AssistantState
+import com.jarvis.assistant.core.model.TurnRole
+import com.jarvis.assistant.permissions.PermissionRationale
 import com.jarvis.assistant.ui.DashboardUiState
 import com.jarvis.assistant.ui.components.JarvisOrb
 import com.jarvis.assistant.ui.theme.JarvisColors
@@ -56,14 +60,19 @@ fun DashboardScreen(
     uiState: DashboardUiState,
     rmsLevel: Float,
     partialSpeech: String,
+    rationales: List<PermissionRationale>,
     onMicClick: () -> Unit,
     onStopClick: () -> Unit,
     onSendText: (String) -> Unit,
     onConfirmAction: (Boolean) -> Unit,
+    onDeleteTurn: (String) -> Unit,
+    onClearHistory: () -> Unit,
     onOpenSettings: () -> Unit,
     onRequestPermissions: () -> Unit
 ) {
     var textInput by remember { mutableStateOf("") }
+    var showHistoryPanel by remember { mutableStateOf(false) }
+    var showPermissionDialog by remember { mutableStateOf(false) }
 
     val pending = uiState.pendingConfirmation
     if (pending != null) {
@@ -93,6 +102,37 @@ fun DashboardScreen(
         )
     }
 
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            containerColor = JarvisColors.PanelNavy,
+            title = { Text("لماذا نطلب هذه الصلاحيات؟", color = JarvisColors.TextPrimary) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    rationales.forEach { item ->
+                        Text("${item.titleArabic}: ${item.explanationArabic}", color = JarvisColors.TextSecondary, fontSize = 13.sp)
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showPermissionDialog = false
+                        onRequestPermissions()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = JarvisColors.CyanCore)
+                ) {
+                    Text("متابعة", color = JarvisColors.VoidBlack)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showPermissionDialog = false }) {
+                    Text("لاحقاً", color = JarvisColors.TextPrimary)
+                }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -101,13 +141,12 @@ fun DashboardScreen(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Top Bar with Status Telemetry & Settings Icon
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "J.A.R.V.I.S",
                     color = JarvisColors.CyanCore,
@@ -121,18 +160,26 @@ fun DashboardScreen(
                     fontSize = 11.sp
                 )
             }
-            IconButton(onClick = onOpenSettings) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings",
-                    tint = JarvisColors.CyanCore
-                )
+            Row {
+                IconButton(onClick = { showHistoryPanel = !showHistoryPanel }) {
+                    Icon(
+                        imageVector = Icons.Default.History,
+                        contentDescription = "سجل المحادثات",
+                        tint = if (showHistoryPanel) JarvisColors.CyanCore else JarvisColors.TextSecondary
+                    )
+                }
+                IconButton(onClick = onOpenSettings) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "الإعدادات",
+                        tint = JarvisColors.CyanCore
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-        // Live Connectivity, Microphone, and Battery Status Strip
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -184,21 +231,17 @@ fun DashboardScreen(
         if (!uiState.permissions.microphoneGranted) {
             Spacer(modifier = Modifier.height(10.dp))
             Button(
-                onClick = onRequestPermissions,
+                onClick = { showPermissionDialog = true },
                 colors = ButtonDefaults.buttonColors(containerColor = JarvisColors.ElectricBlue),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("تفعيل صلاحية الميكروفون والإشعارات", color = Color.White)
+                Text("مراجعة وتفعيل صلاحية الميكروفون والإشعارات", color = Color.White)
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
-        // Large Animated JARVIS Avatar & Waveform
-        JarvisOrb(
-            state = uiState.assistantState,
-            rmsLevel = rmsLevel
-        )
+        JarvisOrb(state = uiState.assistantState, rmsLevel = rmsLevel)
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -219,9 +262,8 @@ fun DashboardScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Last Command & Assistant Response Panel
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -239,17 +281,63 @@ fun DashboardScreen(
             Text(uiState.lastResponse, color = JarvisColors.TextPrimary, fontSize = 15.sp, lineHeight = 22.sp)
 
             if (!uiState.errorDetail.isNullOrBlank()) {
-                Text(
-                    text = uiState.errorDetail,
-                    color = JarvisColors.StatusError,
-                    fontSize = 12.sp
-                )
+                Text(text = uiState.errorDetail, color = JarvisColors.StatusError, fontSize = 12.sp)
             }
         }
 
-        Spacer(modifier = Modifier.height(18.dp))
+        if (showHistoryPanel) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(JarvisColors.DeepNavy, RoundedCornerShape(14.dp))
+                    .border(1.dp, JarvisColors.HairlineBlue, RoundedCornerShape(14.dp))
+                    .padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("سجل المحادثات المحفوظ محلياً (${uiState.conversation.size})", color = JarvisColors.CyanCore, fontSize = 12.sp)
+                    if (uiState.conversation.isNotEmpty()) {
+                        OutlinedButton(onClick = onClearHistory) {
+                            Text("مسح السجل", color = JarvisColors.StatusError, fontSize = 11.sp)
+                        }
+                    }
+                }
+                if (uiState.conversation.isEmpty()) {
+                    Text("لا يوجد سجل محادثات حالياً.", color = JarvisColors.TextSecondary, fontSize = 12.sp)
+                } else {
+                    uiState.conversation.takeLast(12).forEach { turn ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(JarvisColors.PanelNavy, RoundedCornerShape(8.dp))
+                                .padding(10.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (turn.role == TurnRole.USER) "أنت" else "جارفيس",
+                                    color = JarvisColors.CyanCore,
+                                    fontSize = 10.sp
+                                )
+                                Text(turn.text, color = JarvisColors.TextPrimary, fontSize = 12.sp)
+                            }
+                            IconButton(onClick = { onDeleteTurn(turn.id) }) {
+                                Icon(Icons.Default.Delete, contentDescription = "حذف", tint = JarvisColors.TextSecondary, modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-        // Manual Mic Button + Interruption Stop Control
+        Spacer(modifier = Modifier.height(16.dp))
+
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -264,7 +352,7 @@ fun DashboardScreen(
                         JarvisColors.CyanCore
                     }
                 ),
-                modifier = Modifier.size(68.dp)
+                modifier = Modifier.size(66.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Mic,
@@ -274,7 +362,11 @@ fun DashboardScreen(
                 )
             }
 
-            if (uiState.assistantState == AssistantState.SPEAKING || uiState.assistantState == AssistantState.LISTENING) {
+            if (
+                uiState.assistantState == AssistantState.SPEAKING ||
+                uiState.assistantState == AssistantState.LISTENING ||
+                uiState.assistantState == AssistantState.THINKING
+            ) {
                 OutlinedButton(
                     onClick = onStopClick,
                     shape = CircleShape,
@@ -289,9 +381,8 @@ fun DashboardScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Text Command Input
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,

@@ -41,7 +41,7 @@ export default function App() {
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = url;
-      anchor.download = 'jarvis-android-phase1.zip';
+      anchor.download = 'jarvis-android-phase1.1.zip';
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();

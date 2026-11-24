@@ -3,75 +3,75 @@ const FEATURE_MATRIX = [
     feature: 'Environment Inspection (Node.js vs Android SDK)',
     phase: 'Pre-Phase 1',
     status: 'Verified',
-    notes: 'Confirmed Node.js/Vite container has no JDK, kotlinc, Gradle, or Android SDK; cloud APK CI workflow added.',
+    notes: 'Confirmed Node.js/Vite container has no JDK, kotlinc, Gradle, or Android SDK; CI runs tests & builds APK.',
   },
   {
-    feature: 'Native Kotlin + Jetpack Compose Project & Theme',
-    phase: 'Phase 1',
-    status: 'Generated (Uncompiled)',
-    notes: 'Complete Gradle Kotlin DSL, Material 3 dark cyan/navy HUD, animated JarvisOrb Canvas.',
+    feature: 'MemoryRepository (DataStore + Corruption Protection)',
+    phase: 'Phase 1.1',
+    status: 'Generated + Unit Tested (Source)',
+    notes: 'Awaited writes, normalized keys, categories, timestamps, relevant-prompt filtering, corruption backup.',
   },
   {
-    feature: 'Gemini AI Brain (Egyptian Arabic + Allowlist Planner)',
-    phase: 'Phase 1',
+    feature: 'SpeechToTextEngine (On-Device API + Lifecycle Guard)',
+    phase: 'Phase 1.1',
+    status: 'Generated (Untested on Device)',
+    notes: 'IDLE/INITIALIZING/LISTENING/PROCESSING/ERROR states, createOnDeviceSpeechRecognizer, session ID guard.',
+  },
+  {
+    feature: 'TextToSpeechEngine (JARVIS Profile + Voice Discovery)',
+    phase: 'Phase 1.1',
+    status: 'Generated (Untested on Device)',
+    notes: 'Utterance ID tracking, guaranteed error recovery, installed voice listing, TtsProvider abstraction.',
+  },
+  {
+    feature: 'GeminiBackendAiProvider (HTTPS + Backoff + Cancellation)',
+    phase: 'Phase 1.1',
     status: 'Implemented & Tested (Server)',
-    notes: 'Server-side @google/genai endpoint (/api/jarvis/chat) + Android GeminiBackendAiProvider.kt.',
+    notes: 'HTTPS URL validation, 3x exponential backoff on 5xx/429/IO, OkHttp Call.cancel(), allowlist validation.',
   },
   {
-    feature: 'Android STT (ar-EG) & JARVIS Voice Profile TTS',
-    phase: 'Phase 1',
+    feature: 'ActionRegistry & LocalCommandRouter',
+    phase: 'Phase 1.1',
+    status: 'Generated + Unit Tested (Source)',
+    notes: '4 Phase 1 actions, enforced confirmation policy, token idempotency, Egyptian Arabic/English offline routing.',
+  },
+  {
+    feature: 'Persistent Conversation History (SQLite)',
+    phase: 'Phase 1.1',
     status: 'Generated (Untested on Device)',
-    notes: 'SpeechToTextEngine.kt + TextToSpeechEngine.kt with interruption & rate/pitch tuning.',
+    notes: 'SQLiteOpenHelper WAL store separated from MemoryRepository with parameterized queries & migrations.',
   },
   {
-    feature: 'Local User-Approved Memory (DataStore)',
-    phase: 'Phase 1',
-    status: 'Generated (Untested on Device)',
-    notes: 'MemoryRepository.kt with view, edit, delete, clear, and opt-out controls.',
+    feature: 'WakeWordEngine Interface (Preparation Only)',
+    phase: 'Phase 1.1',
+    status: 'Contract Prepared',
+    notes: 'No fake detector; documents FOREGROUND_SERVICE_MICROPHONE & HONOR MagicOS battery requirements.',
   },
   {
-    feature: 'Runtime Device & MagicOS Detection',
-    phase: 'Phase 1',
-    status: 'Generated (Untested on Device)',
-    notes: 'DeviceRuntimeInfo.kt reads Build.MANUFACTURER, MODEL, SDK_INT, and ro.build.version.magic.',
+    feature: 'JVM Automated Test Suite (4 Test Files)',
+    phase: 'Phase 1.1',
+    status: 'Generated (Run via Gradle CI)',
+    notes: 'MemoryRepositoryTest, ActionRegistryTest, LocalCommandRouterTest, JarvisSessionCoordinatorTest.',
   },
   {
-    feature: 'Local Always-On Wake Word ("JARVIS")',
-    phase: 'Phase 2',
-    status: 'Not Implemented Yet',
-    notes: 'Requires SDK/license verification (e.g. Porcupine) & HONOR MagicOS foreground service testing.',
-  },
-  {
-    feature: 'App Launching, Contacts, Phone Calls, SMS',
-    phase: 'Phase 3',
+    feature: 'App Launch, Calls, SMS, WhatsApp, Reminders',
+    phase: 'Phases 3–5',
     status: 'Planned in Allowlist',
-    notes: 'Blocked cleanly in ActionRegistry until Phase 3 permissions and handlers are built.',
-  },
-  {
-    feature: 'WhatsApp, Messenger, Telegram Notifications',
-    phase: 'Phase 4',
-    status: 'Planned in Allowlist',
-    notes: 'Will use NotificationListenerService & supported reply intents with confirmation.',
-  },
-  {
-    feature: 'Reminders, Timers & Multi-step Automation',
-    phase: 'Phase 5',
-    status: 'Planned in Allowlist',
-    notes: 'Will use AlarmManager / WorkManager with local task history.',
+    notes: 'Explicitly marked NOT_IMPLEMENTED_IN_PHASE and blocked safely until implemented.',
   },
 ];
 
 const TESTING_CHECKLIST = [
-  '1. Application startup on HONOR 400 Pro (DNP-NX9)',
-  '2. Runtime RECORD_AUDIO & POST_NOTIFICATIONS permission flow',
-  '3. Egyptian Arabic speech recognition (SpeechRecognizer ar-EG)',
-  '4. JARVIS voice profile TTS clarity & interruption stop()',
-  '5. Gemini backend connection & API error recovery',
-  '6. Multi-turn Egyptian Arabic conversation context',
-  '7. ActionRegistry allowlist rejection for unimplemented/unknown actions',
-  '8. Local DataStore memory persistence & deletion',
-  '9. Offline detection & battery status local execution',
-  '10. HONOR MagicOS battery optimization exclusion behavior',
+  '1. Run gradle testDebugUnitTest in GitHub Actions (all 4 suites)',
+  '2. Verify MemoryRepository corruption recovery and disabled-memory guards',
+  '3. Verify ActionRegistry cannot bypass confirmation via AI payload',
+  '4. Verify LocalCommandRouter offline responses on airplane mode',
+  '5. Verify SpeechRecognizer ar-EG & on-device availability on HONOR 400 Pro',
+  '6. Verify TTS voice selection & error recovery from SPEAKING state',
+  '7. Verify HTTPS enforcement in BackendUrlValidator',
+  '8. Verify SQLite conversation history persistence across app restarts',
+  '9. Verify Activity lifecycle onStop() releases microphone cleanly',
+  '10. Verify HONOR MagicOS battery optimization guidance intent',
 ];
 
 export function RoadmapStatusView() {
@@ -79,21 +79,22 @@ export function RoadmapStatusView() {
     <div className="space-y-6">
       <section className="bg-[#0C1426] border border-[#1A2B4C] rounded-xl p-6 space-y-3">
         <h2 className="font-display text-lg font-semibold text-slate-100">
-          Environment Inspection &amp; Architecture Report
+          Phase 1.1 Engineering Audit &amp; Architecture Report
         </h2>
         <p className="text-sm text-slate-300 leading-relaxed">
-          Runtime inspection confirmed this AI Studio container runs Node.js v22, Vite, and Express without Java JDK,
-          Kotlin compiler, Gradle, or Android SDK installed. Rather than disguising a web app as native Android or
-          claiming unverified APK builds, this workspace delivers both: genuine native Kotlin/Jetpack Compose Phase 1
-          source files (with a GitHub Actions workflow to compile the APK from your phone) and a live server-side
-          Gemini Egyptian Arabic AI Brain backend.
+          Phase 1.1 upgrades the existing native Kotlin + Jetpack Compose project with awaited DataStore memory
+          persistence, corruption protection, on-device SpeechRecognizer lifecycle management, TTS error recovery,
+          HTTPS-enforced Gemini retries and cancellation, SQLite conversation history, a deterministic offline
+          LocalCommandRouter, a WakeWordEngine preparation contract, and 4 JUnit4 unit test suites. Note: Gradle
+          compilation and unit test execution require GitHub Actions or an Android SDK environment because this web
+          container has Node.js only.
         </p>
       </section>
 
       <section className="bg-[#0C1426] border border-[#1A2B4C] rounded-xl overflow-hidden">
         <div className="px-6 py-4 border-b border-[#1A2B4C]">
           <h3 className="font-display text-base font-semibold text-slate-100">
-            Feature Implementation &amp; Verification Status
+            Phase 1.1 Implementation &amp; Verification Status
           </h3>
         </div>
         <div className="overflow-x-auto">
@@ -122,7 +123,7 @@ export function RoadmapStatusView() {
 
       <section className="bg-[#0C1426] border border-[#1A2B4C] rounded-xl p-6 space-y-3">
         <h3 className="font-display text-base font-semibold text-slate-100">
-          Phase 1 On-Device Testing Checklist (HONOR 400 Pro)
+          Phase 1.1 Verification &amp; On-Device Testing Checklist
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs text-slate-300">
           {TESTING_CHECKLIST.map((item) => (

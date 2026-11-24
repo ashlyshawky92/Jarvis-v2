@@ -31,6 +31,22 @@ const ACTION_ALLOWLIST = [
     params: ["key", "value"],
   },
   {
+    id: "retrieve_memory",
+    phase: 1,
+    implemented: true,
+    confirmation: "NONE",
+    description: "Retrieve a saved preference or personal note from local memory (params: key).",
+    params: ["key"],
+  },
+  {
+    id: "delete_memory_note",
+    phase: 1,
+    implemented: true,
+    confirmation: "REQUIRED",
+    description: "Delete a specific entry from local memory after confirmation (params: key).",
+    params: ["key"],
+  },
+  {
     id: "open_application",
     phase: 3,
     implemented: false,
@@ -108,7 +124,7 @@ async function startServer() {
       status: "ok",
       geminiConfigured: hasGeminiKey,
       defaultModel: "gemini-4-hydrogen",
-      phase: "Phase 1 — Foundation",
+      phase: "Phase 1.1 — Stability, Voice & Security",
     });
   });
 

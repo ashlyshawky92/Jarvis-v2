@@ -41,7 +41,7 @@ fun JarvisOrb(
         animationSpec = infiniteRepeatable(
             animation = tween(
                 durationMillis = when (state) {
-                    AssistantState.THINKING, AssistantState.EXECUTING -> 2800
+                    AssistantState.THINKING, AssistantState.INITIALIZING -> 2800
                     AssistantState.LISTENING, AssistantState.SPEAKING -> 4500
                     else -> 11000
                 },
@@ -62,27 +62,25 @@ fun JarvisOrb(
 
     val ringColor = when (state) {
         AssistantState.LISTENING -> JarvisColors.CyanCore
-        AssistantState.THINKING, AssistantState.EXECUTING -> JarvisColors.ElectricBlue
+        AssistantState.THINKING, AssistantState.INITIALIZING -> JarvisColors.ElectricBlue
         AssistantState.SPEAKING -> Color(0xFF38BDF8)
+        AssistantState.AWAITING_CONFIRMATION -> JarvisColors.StatusWarning
         AssistantState.OFFLINE -> JarvisColors.StatusWarning
         AssistantState.ERROR -> JarvisColors.StatusError
         AssistantState.STANDBY -> JarvisColors.CyanCore.copy(alpha = 0.65f)
     }
 
     Box(
-        modifier = modifier.size(228.dp),
+        modifier = modifier.size(216.dp),
         contentAlignment = Alignment.Center
     ) {
-        Canvas(modifier = Modifier.size(228.dp)) {
+        Canvas(modifier = Modifier.size(216.dp)) {
             val center = Offset(size.width / 2f, size.height / 2f)
             val baseRadius = size.minDimension * 0.31f
 
             drawCircle(
                 brush = Brush.radialGradient(
-                    colors = listOf(
-                        ringColor.copy(alpha = 0.24f),
-                        Color.Transparent
-                    ),
+                    colors = listOf(ringColor.copy(alpha = 0.24f), Color.Transparent),
                     center = center,
                     radius = size.minDimension * 0.5f
                 ),
@@ -90,7 +88,6 @@ fun JarvisOrb(
                 center = center
             )
 
-            // Outer segmented arc
             drawArc(
                 color = ringColor.copy(alpha = 0.75f),
                 startAngle = rotationAngle,
@@ -106,12 +103,12 @@ fun JarvisOrb(
                 style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
             )
 
-            // Waveform spikes driven by real mic RMS during LISTENING or subtle rhythm during SPEAKING
             val barCount = 48
             val dynamicAmp = when (state) {
                 AssistantState.LISTENING -> (0.12f + rmsLevel * 0.88f)
                 AssistantState.SPEAKING -> 0.45f * pulse
-                AssistantState.THINKING -> 0.28f
+                AssistantState.THINKING, AssistantState.INITIALIZING -> 0.28f
+                AssistantState.AWAITING_CONFIRMATION -> 0.16f
                 else -> 0.05f
             }
 
@@ -139,7 +136,6 @@ fun JarvisOrb(
                 )
             }
 
-            // Inner core circle
             drawCircle(
                 color = JarvisColors.DeepNavy,
                 radius = baseRadius * 0.88f,

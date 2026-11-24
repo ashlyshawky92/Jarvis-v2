@@ -1,6 +1,7 @@
 package com.jarvis.assistant.actions
 
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 enum class ConfirmationPolicy {
     NONE,
@@ -13,6 +14,7 @@ enum class ActionExecutionStatus {
     NOT_IMPLEMENTED_IN_PHASE,
     PERMISSION_MISSING,
     INVALID_PARAMETERS,
+    DUPLICATE_IGNORED,
     FAILED
 }
 
@@ -30,7 +32,8 @@ data class ActionDefinition(
 data class PlannedAction(
     val actionId: String,
     val parameters: Map<String, String> = emptyMap(),
-    val requiresConfirmation: Boolean = true
+    val requiresConfirmation: Boolean = true,
+    val confirmationToken: String = UUID.randomUUID().toString()
 )
 
 data class ActionResult(
