@@ -1,0 +1,6 @@
+{
+  "name": "JARVIS Android Studio & AI Brain",
+  "description": "Phase 1 Native Android Kotlin and Jetpack Compose source code with a live Egyptian Arabic Gemini AI Brain backend and phone-ready APK build workflow.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
